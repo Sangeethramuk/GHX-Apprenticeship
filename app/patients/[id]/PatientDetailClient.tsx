@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import {
   Activity,
   AlertTriangle,
@@ -13,6 +14,7 @@ import {
   ShieldAlert,
   Stethoscope,
   User,
+  Video,
 } from "lucide-react"
 
 import type { Patient } from "@/lib/patient-data"
@@ -91,6 +93,7 @@ function VitalsTable({ patient }: { patient: Patient }) {
 }
 
 export function PatientDetailClient({ patient }: { patient: Patient }) {
+  const router = useRouter()
   const adherenceColor =
     patient.adherence >= 80
       ? "text-green-600"
@@ -104,7 +107,7 @@ export function PatientDetailClient({ patient }: { patient: Patient }) {
     <div className="flex h-screen flex-col bg-muted/20">
       {/* Top nav */}
       <header className="sticky top-0 z-10 flex h-14 items-center gap-3 border-b bg-background px-6">
-        <Button variant="ghost" size="sm" render={<Link href="/" />} className="gap-1.5">
+        <Button variant="ghost" size="sm" render={<Link href="/" />} nativeButton={false} className="gap-1.5">
           <ChevronLeft className="h-4 w-4" />
           Dashboard
         </Button>
@@ -165,6 +168,15 @@ export function PatientDetailClient({ patient }: { patient: Patient }) {
               <Button variant="outline" size="sm" className="gap-1.5">
                 <Phone className="h-4 w-4" />
                 Call
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-1.5"
+                onClick={() => router.push(`/patients/${patient.id}/consultation`)}
+              >
+                <Video className="h-4 w-4" />
+                Start Consultation
               </Button>
               <Button size="sm" className="gap-1.5">
                 <Pill className="h-4 w-4" />
