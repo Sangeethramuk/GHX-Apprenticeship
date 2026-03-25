@@ -1,65 +1,187 @@
-import Image from "next/image";
+import { Activity, AlertTriangle, CheckCircle2, Clock, Phone, Pill, User } from "lucide-react"
+
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Progress } from "@/components/ui/progress"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+
+const patients = [
+  { id: 1, name: "Arjun Mehta", condition: "Hypertension", adherence: 65, latestSymptom: "Dizziness", risk: "Medium", lastCheckin: "2 hours ago" },
+  { id: 2, name: "Priya Sharma", condition: "Type 2 Diabetes", adherence: 88, latestSymptom: "None", risk: "Low", lastCheckin: "Yesterday" },
+  { id: 3, name: "Ramesh Kumar", condition: "Cardiac", adherence: 42, latestSymptom: "Chest tightness", risk: "Critical", lastCheckin: "10 mins ago" },
+  { id: 4, name: "Sunita Patel", condition: "Thyroid", adherence: 95, latestSymptom: "None", risk: "Low", lastCheckin: "Today" },
+]
 
 export default function Home() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className="flex h-screen w-full flex-col bg-muted/20">
+      {/* Header */}
+      <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-background px-6">
+        <div className="flex items-center gap-2">
+          <Activity className="h-6 w-6 text-primary" />
+          <h1 className="text-xl font-bold tracking-tight">Wellytics Continuous Care</h1>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+        <div className="ml-auto flex items-center gap-4">
+          <Button variant="outline" size="sm">
+            <Clock className="mr-2 h-4 w-4" />
+            Shift active
+          </Button>
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10">
+            <User className="h-4 w-4 text-primary" />
+          </div>
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <main className="flex-1 overflow-auto p-6">
+        <div className="mx-auto max-w-7xl space-y-6">
+          
+          {/* Overview Cards */}
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium">Active Patients</CardTitle>
+                <User className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">1,248</div>
+                <p className="text-xs text-muted-foreground">+12 since yesterday</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium">Critical Alerts</CardTitle>
+                <AlertTriangle className="h-4 w-4 text-destructive" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-destructive">7</div>
+                <p className="text-xs text-muted-foreground">Requires immediate review</p>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium">Avg. Adherence</CardTitle>
+                <CheckCircle2 className="h-4 w-4 text-primary" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">78%</div>
+                <Progress value={78} className="mt-2" />
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium">Recent Check-ins</CardTitle>
+                <Activity className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">432</div>
+                <p className="text-xs text-muted-foreground">In the last 24 hours</p>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="grid gap-6 md:grid-cols-7">
+            {/* Patient Priority List */}
+            <Card className="col-span-5">
+              <CardHeader>
+                <CardTitle>Priority Patient List</CardTitle>
+                <CardDescription>Patients requiring attention based on risk signals and adherence.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Patient</TableHead>
+                      <TableHead>Condition</TableHead>
+                      <TableHead>Adherence</TableHead>
+                      <TableHead>Risk Signal</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {patients.map((patient) => (
+                      <TableRow key={patient.id}>
+                        <TableCell className="font-medium">{patient.name}</TableCell>
+                        <TableCell>{patient.condition}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm">{patient.adherence}%</span>
+                            <Progress value={patient.adherence} className="w-[60px]" />
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          {patient.latestSymptom !== "None" ? (
+                            <span className="flex items-center gap-1 text-sm text-destructive font-medium">
+                              <AlertTriangle className="h-3 w-3" />
+                              {patient.latestSymptom}
+                            </span>
+                          ) : (
+                            <span className="text-sm text-muted-foreground">Normal</span>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={patient.risk === "Critical" ? "destructive" : patient.risk === "Medium" ? "secondary" : "outline"}>
+                            {patient.risk}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-2">
+                            <Button size="icon" variant="outline" title="Call Patient">
+                              <Phone className="h-4 w-4" />
+                            </Button>
+                            <Button size="icon" variant="outline" title="Adjust Medication">
+                              <Pill className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+
+            {/* Live Feed */}
+            <Card className="col-span-2">
+              <CardHeader>
+                <CardTitle>Live Feed</CardTitle>
+                <CardDescription>Real-time check-ins & alerts</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {[
+                    { title: "Missed Medication", desc: "Ramesh K. missed morning dose (3rd day)", time: "10m ago", urgent: true },
+                    { title: "Check-in Complete", desc: "Arjun M. reported dizziness", time: "2h ago", urgent: true },
+                    { title: "Medication Taken", desc: "Sunita P. logged morning meds", time: "3h ago", urgent: false },
+                    { title: "Check-in Complete", desc: "Priya S. feeling normal", time: "5h ago", urgent: false },
+                  ].map((item, i) => (
+                    <div key={i} className="flex gap-3 border-l-2 pl-4 pb-4 border-muted cursor-pointer hover:bg-muted/50 transition-colors -ml-px">
+                      <div className="mt-1 flex">
+                        {item.urgent ? (
+                          <div className="-ml-[21px] mr-3 rounded-full bg-destructive p-1 ring-4 ring-background">
+                            <AlertTriangle className="h-3 w-3 text-white" />
+                          </div>
+                        ) : (
+                          <div className="-ml-[21px] mr-3 rounded-full bg-primary p-1 ring-4 ring-background">
+                            <CheckCircle2 className="h-3 w-3 text-white" />
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <p className={`text-sm font-medium leading-none ${item.urgent ? "text-destructive" : ""}`}>{item.title}</p>
+                        <p className="text-xs text-muted-foreground">{item.desc}</p>
+                        <span className="text-xs text-muted-foreground/50">{item.time}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </main>
     </div>
-  );
+  )
 }
