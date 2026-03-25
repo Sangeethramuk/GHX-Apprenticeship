@@ -2,7 +2,7 @@
 
 **Design System:** Next.js + shadcn/ui (55+ components)  
 **Repo URL:** https://github.com/Sangeethramuk/GHX-Apprenticeship  
-**Maintainer:** Sangeeth Kumar (you approve all merges)
+**Maintainer:** Sangeeth Kumar
 
 ---
 
