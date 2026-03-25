@@ -3,7 +3,6 @@
 import { useState } from "react"
 import Link from "next/link"
 import {
-  Activity,
   FilePlus2,
   ArrowLeft,
   Sparkles,
@@ -190,28 +189,28 @@ const AI_SUGGESTIONS: Record<string, DrugSuggestion> = {
   },
 }
 
-function getSuggestion(drugValue: string): DrugSuggestion {
-  return AI_SUGGESTIONS[drugValue] ?? AI_SUGGESTIONS["_default"]
+function getSuggestion(drugValue: string | null): DrugSuggestion {
+  return AI_SUGGESTIONS[drugValue ?? ""] ?? AI_SUGGESTIONS["_default"]
 }
 
-function getDrugLabel(value: string) {
-  return DRUGS.find((d) => d.value === value)?.label ?? value
+function getDrugLabel(value: string | null) {
+  return DRUGS.find((d) => d.value === value)?.label ?? value ?? ""
 }
 
-function getPatientLabel(value: string) {
-  return PATIENTS.find((p) => p.value === value)?.label ?? value
+function getPatientLabel(value: string | null) {
+  return PATIENTS.find((p) => p.value === value)?.label ?? value ?? ""
 }
 
 // ─── Page Component ──────────────────────────────────────────────────────────
 
 export default function PrescriptionsPage() {
-  const [patientValue, setPatientValue] = useState("")
-  const [medicationValue, setMedicationValue] = useState("")
+  const [patientValue, setPatientValue] = useState<string | null>("")
+  const [medicationValue, setMedicationValue] = useState<string | null>("")
   const [dosage, setDosage] = useState("")
-  const [frequency, setFrequency] = useState("")
-  const [route, setRoute] = useState("")
+  const [frequency, setFrequency] = useState<string | null>("")
+  const [route, setRoute] = useState<string | null>("")
   const [duration, setDuration] = useState("")
-  const [durationUnit, setDurationUnit] = useState("days")
+  const [durationUnit, setDurationUnit] = useState<string | null>("days")
   const [instructions, setInstructions] = useState("")
 
   const [aiState, setAiState] = useState<"idle" | "loading" | "result">("idle")
