@@ -272,7 +272,7 @@ export function PatientDetailClient({ patient }: { patient: Patient }) {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="pt-0">
-                  <Accordion type="multiple">
+                  <Accordion defaultValue={patient.medications.map((_, i) => `med-${i}`)}>
                     {patient.medications.map((med, i) => (
                       <AccordionItem key={i} value={`med-${i}`}>
                         <AccordionTrigger className="text-sm py-3">
