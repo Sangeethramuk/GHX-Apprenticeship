@@ -1,4 +1,5 @@
-import { Activity, AlertTriangle, CheckCircle2, Clock, Phone, Pill, User } from "lucide-react"
+import Link from "next/link"
+import { Activity, AlertTriangle, CheckCircle2, Clock, FilePlus2, Phone, Pill, User } from "lucide-react"
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -23,6 +24,10 @@ export default function Home() {
           <h1 className="text-xl font-bold tracking-tight">Wellytics Continuous Care</h1>
         </div>
         <div className="ml-auto flex items-center gap-4">
+          <Button render={<Link href="/prescriptions" />} nativeButton={false} variant="outline" size="sm">
+            <FilePlus2 className="mr-2 h-4 w-4" />
+            Write Prescription
+          </Button>
           <Button variant="outline" size="sm">
             <Clock className="mr-2 h-4 w-4" />
             Shift active
