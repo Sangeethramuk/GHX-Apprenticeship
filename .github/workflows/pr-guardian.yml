@@ -1,0 +1,293 @@
+name: PR Guardian - Automated Review Bot
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  pull_request_review:
+    types: [submitted]
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  pr-guardian:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Analyze PR Changes
+        id: analyze
+        run: |
+          echo "Analyzing PR changes..."
+          
+          # Get changed files
+          CHANGED_FILES=$(git diff --name-only origin/main...HEAD | tr '\n' ',')
+          echo "changed_files=$CHANGED_FILES" >> $GITHUB_OUTPUT
+          
+          # Count files changed
+          FILE_COUNT=$(git diff --name-only origin/main...HEAD | wc -l)
+          echo "file_count=$FILE_COUNT" >> $GITHUB_OUTPUT
+          
+          # Check for file deletions
+          DELETED_FILES=$(git diff --name-status origin/main...HEAD | grep '^D' | cut -f2 | tr '\n' ',')
+          echo "deleted_files=$DELETED_FILES" >> $GITHUB_OUTPUT
+          DELETED_COUNT=$(git diff --name-status origin/main...HEAD | grep '^D' | wc -l)
+          echo "deleted_count=$DELETED_COUNT" >> $GITHUB_OUTPUT
+          
+          # Get total lines changed
+          LINES_CHANGED=$(git diff --stat origin/main...HEAD | tail -1 | awk '{print $4+$6}')
+          echo "lines_changed=${LINES_CHANGED:-0}" >> $GITHUB_OUTPUT
+          
+          # Get max lines in single file
+          MAX_LINES=$(git diff --stat origin/main...HEAD | head -n -1 | awk '{print $4+$6}' | sort -n | tail -1)
+          echo "max_lines=${MAX_LINES:-0}" >> $GITHUB_OUTPUT
+          
+          # Check for critical files
+          CRITICAL_FILES="AGENTS.md DESIGN_SYSTEM.md TEAM_WORKFLOW.md package.json tsconfig.json components.json next.config.ts next.config.js"
+          CRITICAL_TOUCHED=""
+          for file in $CRITICAL_FILES; do
+            if echo "$CHANGED_FILES" | grep -q "$file"; then
+              CRITICAL_TOUCHED="$CRITICAL_TOUCHED$file,"
+            fi
+          done
+          echo "critical_touched=$CRITICAL_TOUCHED" >> $GITHUB_OUTPUT
+          
+          # Check for UI components modifications
+          UI_TOUCHED=$(echo "$CHANGED_FILES" | grep -E '^components/ui/' | tr '\n' ',')
+          echo "ui_touched=$UI_TOUCHED" >> $GITHUB_OUTPUT
+          
+          # Check if only docs changed (<50 lines)
+          ONLY_MD=true
+          for file in $(git diff --name-only origin/main...HEAD); do
+            if [[ ! "$file" =~ \.md$ ]]; then
+              ONLY_MD=false
+              break
+            fi
+          done
+          echo "only_md=$ONLY_MD" >> $GITHUB_OUTPUT
+          
+          echo "Analysis complete!"
+
+      - name: Block Critical Changes
+        if: |
+          steps.analyze.outputs.deleted_count > 0 || 
+          steps.analyze.outputs.critical_touched != '' || 
+          steps.analyze.outputs.ui_touched != '' ||
+          steps.analyze.outputs.max_lines > 500 ||
+          steps.analyze.outputs.file_count > 10
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            
+            let comment = '## ❌ PR BLOCKED - Critical Changes Detected\n\n';
+            let shouldBlock = false;
+            
+            // Check file deletions
+            if ('${{ steps.analyze.outputs.deleted_count }}' > 0) {
+              comment += '### 🗑️ File Deletions Detected\n';
+              comment += 'Deleted files: `' + '${{ steps.analyze.outputs.deleted_files }}'.replace(/,$/, '') + '`\n\n';
+              comment += '> ⚠️ **File deletions require explicit approval from @Sangeethramuk**\n\n';
+              shouldBlock = true;
+            }
+            
+            // Check critical files
+            if ('${{ steps.analyze.outputs.critical_touched }}' !== '') {
+              comment += '### 🔒 Critical File Modifications\n';
+              comment += 'Modified protected files: `' + '${{ steps.analyze.outputs.critical_touched }}'.replace(/,$/, '') + '`\n\n';
+              comment += '> ⚠️ **Critical files require explicit approval from @Sangeethramuk**\n\n';
+              shouldBlock = true;
+            }
+            
+            // Check UI components
+            if ('${{ steps.analyze.outputs.ui_touched }}' !== '') {
+              comment += '### 🎨 UI Component Modifications\n';
+              comment += 'Modified UI components: `' + '${{ steps.analyze.outputs.ui_touched }}'.replace(/,$/, '') + '`\n\n';
+              comment += '> ⚠️ **UI component changes require explicit approval from @Sangeethramuk**\n\n';
+              shouldBlock = true;
+            }
+            
+            // Check large changes
+            if (${{ steps.analyze.outputs.max_lines }} > 500) {
+              comment += '### 📊 Large Change Detected\n';
+              comment += `Single file has ${{ steps.analyze.outputs.max_lines }} lines changed (limit: 500)\n\n`;
+              comment += '> ⚠️ **Large changes require careful review by @Sangeethramuk**\n\n';
+              shouldBlock = true;
+            }
+            
+            // Check file count
+            if (${{ steps.analyze.outputs.file_count }} > 10) {
+              comment += '### 📁 Too Many Files Changed\n';
+              comment += `${{ steps.analyze.outputs.file_count }} files changed (limit: 10)\n\n`;
+              comment += '> 💡 **Consider breaking this into smaller PRs**\n\n';
+              shouldBlock = true;
+            }
+            
+            comment += '---\n';
+            comment += '**To proceed:**\n';
+            comment += '1. Revert the blocked changes\n';
+            comment += '2. Or request @Sangeethramuk to review and approve explicitly\n\n';
+            comment += '**Protected items:**\n';
+            comment += '- File deletions (any)\n';
+            comment += '- Critical files (AGENTS.md, DESIGN_SYSTEM.md, etc.)\n';
+            comment += '- UI components (@/components/ui/)\n';
+            comment += '- Changes >500 lines per file\n';
+            comment += '- PRs with >10 files\n';
+            
+            await github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
+            
+            // Add blocked label
+            await github.rest.issues.addLabels({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              labels: ['blocked', 'needs-review']
+            });
+            
+            // Request changes review
+            await github.rest.pulls.createReview({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number,
+              body: '❌ Changes blocked by PR Guardian. Please see comment above.',
+              event: 'REQUEST_CHANGES'
+            });
+            
+            core.setFailed('PR blocked due to critical changes');
+
+      - name: Warn Large Changes
+        if: |
+          steps.analyze.outputs.deleted_count == 0 && 
+          steps.analyze.outputs.critical_touched == '' && 
+          steps.analyze.outputs.ui_touched == '' &&
+          steps.analyze.outputs.max_lines > 100 &&
+          steps.analyze.outputs.max_lines <= 500 &&
+          steps.analyze.outputs.file_count <= 10
+        uses: actions/github-script@v7
+        with:
+          script: |
+            let comment = '## ⚠️ WARNING - Large Changes Detected\n\n';
+            comment += 'This PR contains significant changes that require careful review:\n\n';
+            comment += `- **Files changed:** ${{ steps.analyze.outputs.file_count }}\n`;
+            comment += `- **Total lines changed:** ${{ steps.analyze.outputs.lines_changed }}\n`;
+            comment += `- **Max lines in single file:** ${{ steps.analyze.outputs.max_lines }}\n\n`;
+            comment += '**Changed files:**\n';
+            comment += '`${{ steps.analyze.outputs.changed_files }}`\n\n';
+            comment += '---\n';
+            comment += '@Sangeethramuk - Please review carefully before merging.\n';
+            comment += 'Consider requesting changes if the modifications are too extensive.';
+            
+            await github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
+            
+            await github.rest.issues.addLabels({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              labels: ['needs-careful-review']
+            });
+
+      - name: Auto-merge Safe Changes
+        if: |
+          steps.analyze.outputs.deleted_count == 0 && 
+          steps.analyze.outputs.critical_touched == '' && 
+          steps.analyze.outputs.ui_touched == '' &&
+          steps.analyze.outputs.max_lines <= 100 &&
+          steps.analyze.outputs.file_count <= 10 &&
+          steps.analyze.outputs.only_md == 'true' &&
+          steps.analyze.outputs.lines_changed < 50
+        uses: actions/github-script@v7
+        with:
+          script: |
+            let comment = '## ✅ AUTO-MERGED - Safe Documentation Update\n\n';
+            comment += 'This PR passed all automated safety checks:\n\n';
+            comment += '- ✅ No file deletions\n';
+            comment += '- ✅ No critical files modified\n';
+            comment += '- ✅ No UI components modified\n';
+            comment += '- ✅ Changes are documentation-only (<50 lines)\n';
+            comment += `- ✅ Files changed: ${{ steps.analyze.outputs.file_count }}\n\n`;
+            comment += '**Changed files:**\n';
+            comment += '`${{ steps.analyze.outputs.changed_files }}`\n\n';
+            comment += '---\n';
+            comment += '🤖 This PR has been automatically merged as it meets all safety criteria.';
+            
+            await github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
+            
+            await github.rest.issues.addLabels({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              labels: ['auto-merged']
+            });
+            
+            // Auto-merge the PR
+            await github.rest.pulls.merge({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number,
+              merge_method: 'squash',
+              commit_title: `docs: Auto-merge documentation update #${context.issue.number}`
+            });
+
+      - name: Approve Safe Non-Doc Changes
+        if: |
+          steps.analyze.outputs.deleted_count == 0 && 
+          steps.analyze.outputs.critical_touched == '' && 
+          steps.analyze.outputs.ui_touched == '' &&
+          steps.analyze.outputs.max_lines <= 100 &&
+          steps.analyze.outputs.file_count <= 10 &&
+          steps.analyze.outputs.only_md == 'false'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            let comment = '## ✅ AUTOMATED CHECKS PASSED\n\n';
+            comment += 'This PR passed all safety checks and is ready for review:\n\n';
+            comment += '- ✅ No file deletions\n';
+            comment += '- ✅ No critical files modified\n';
+            comment += '- ✅ No UI components modified\n';
+            comment += '- ✅ Reasonable change size\n';
+            comment += `- ✅ Files changed: ${{ steps.analyze.outputs.file_count }}\n`;
+            comment += `- ✅ Total lines: ${{ steps.analyze.outputs.lines_changed }}\n\n`;
+            comment += '**Changed files:**\n';
+            comment += '`${{ steps.analyze.outputs.changed_files }}`\n\n';
+            comment += '---\n';
+            comment += '@Sangeethramuk - Please review when ready.\n';
+            comment += '✨ All automated safety checks have passed.';
+            
+            await github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
+            
+            await github.rest.issues.addLabels({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              labels: ['ready-for-review']
+            });

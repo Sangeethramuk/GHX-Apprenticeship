@@ -1,0 +1,42 @@
+# CODEOWNERS - Critical File Protection
+# Any changes to these files require approval from @Sangeethramuk
+
+# Global default - Sangeeth owns everything
+* @Sangeethramuk
+
+# Design System Documentation (Critical)
+AGENTS.md @Sangeethramuk
+DESIGN_SYSTEM.md @Sangeethramuk
+TEAM_WORKFLOW.md @Sangeethramuk
+
+# Core Configuration Files (Critical)
+package.json @Sangeethramuk
+tsconfig.json @Sangeethramuk
+components.json @Sangeethramuk
+next.config.ts @Sangeethramuk
+next.config.js @Sangeethramuk
+postcss.config.mjs @Sangeethramuk
+postcss.config.js @Sangeethramuk
+eslint.config.mjs @Sangeethramuk
+
+# UI Component Library (Critical - No modifications without approval)
+/components/ui/* @Sangeethramuk
+/components/ui/**/* @Sangeethramuk
+
+# Core Application Files
+app/layout.tsx @Sangeethramuk
+app/globals.css @Sangeethramuk
+app/page.tsx @Sangeethramuk
+
+# Utility Functions
+lib/utils.ts @Sangeethramuk
+
+# Hooks
+hooks/* @Sangeethramuk
+
+# GitHub Configuration
+.github/**/* @Sangeethramuk
+
+# Public Assets (Protected from deletion)
+public/* @Sangeethramuk
+public/**/* @Sangeethramuk
