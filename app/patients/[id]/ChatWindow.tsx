@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react"
 import { MessageCircle, Send } from "lucide-react"
 
-import type { Patient } from "@/lib/patient-data"
+import type { Patient } from "@/lib/mock-patients"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ScrollArea } from "@/components/ui/scroll-area"
