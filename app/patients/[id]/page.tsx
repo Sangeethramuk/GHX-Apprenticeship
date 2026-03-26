@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation"
+import Link from "next/link"
 import {
   Activity,
   AlertTriangle,
@@ -10,6 +11,7 @@ import {
   Scale,
   Thermometer,
   User,
+  Video,
   Wind,
 } from "lucide-react"
 
@@ -89,6 +91,10 @@ export default async function PatientPage({ params }: { params: Promise<{ id: st
           </BreadcrumbList>
         </Breadcrumb>
         <div className="ml-auto flex items-center gap-4">
+          <Button render={<Link href={`/patients/${patient.id}/consultation`} />} nativeButton={false} variant="outline" size="sm">
+            <Video className="mr-2 h-4 w-4" />
+            Start Consultation
+          </Button>
           <Button variant="outline" size="sm">
             <Clock className="mr-2 h-4 w-4" />
             Shift active
