@@ -1,8 +1,11 @@
-import { Activity, AlertTriangle, CheckCircle2, Clock, Phone, Pill, User } from "lucide-react"
+"use client"
+
+import Link from "next/link"
+import { Activity, AlertTriangle, CheckCircle2, Clock, Eye, Phone, Pill, User } from "lucide-react"
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
+import { Button, buttonVariants } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 
@@ -134,6 +137,9 @@ export default function Dashboard() {
                             <Button size="icon" variant="outline" title="Adjust Medication">
                               <Pill className="h-4 w-4" />
                             </Button>
+                            <Link href={`/patients/${patient.id}`} className={buttonVariants({ size: "icon", variant: "ghost" })} title="View Patient Details">
+                              <Eye className="h-4 w-4" />
+                            </Link>
                           </div>
                         </TableCell>
                       </TableRow>

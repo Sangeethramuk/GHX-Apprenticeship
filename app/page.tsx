@@ -1,19 +1,22 @@
 "use client"
 
 import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { Activity, AlertTriangle, CheckCircle2, Clock, Eye, FilePlus2, Phone, Pill, User } from "lucide-react"
+import { Activity, AlertTriangle, CheckCircle2, Clock, Eye, Phone, Pill, User } from "lucide-react"
 
-import { patients } from "@/lib/patient-data"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
+import { Button, buttonVariants } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 
-export default function Home() {
-  const router = useRouter()
+const patients = [
+  { id: 1, name: "Arjun Mehta", condition: "Hypertension", adherence: 65, latestSymptom: "Dizziness", risk: "Medium", lastCheckin: "2 hours ago" },
+  { id: 2, name: "Priya Sharma", condition: "Type 2 Diabetes", adherence: 88, latestSymptom: "None", risk: "Low", lastCheckin: "Yesterday" },
+  { id: 3, name: "Ramesh Kumar", condition: "Cardiac", adherence: 42, latestSymptom: "Chest tightness", risk: "Critical", lastCheckin: "10 mins ago" },
+  { id: 4, name: "Sunita Patel", condition: "Thyroid", adherence: 95, latestSymptom: "None", risk: "Low", lastCheckin: "Today" },
+]
 
+export default function Home() {
   return (
     <div className="flex h-screen w-full flex-col bg-muted/20">
       {/* Header */}
@@ -23,10 +26,6 @@ export default function Home() {
           <h1 className="text-xl font-bold tracking-tight">Wellytics Continuous Care</h1>
         </div>
         <div className="ml-auto flex items-center gap-4">
-          <Button render={<Link href="/prescriptions" />} nativeButton={false} variant="outline" size="sm">
-            <FilePlus2 className="mr-2 h-4 w-4" />
-            Write Prescription
-          </Button>
           <Button variant="outline" size="sm">
             <Clock className="mr-2 h-4 w-4" />
             Shift active
@@ -40,7 +39,7 @@ export default function Home() {
       {/* Main Content */}
       <main className="flex-1 overflow-auto p-6">
         <div className="mx-auto max-w-7xl space-y-6">
-
+          
           {/* Overview Cards */}
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <Card>
@@ -90,7 +89,7 @@ export default function Home() {
             <Card className="col-span-5">
               <CardHeader>
                 <CardTitle>Priority Patient List</CardTitle>
-                <CardDescription>Click a patient row or View to see full details with AI summary.</CardDescription>
+                <CardDescription>Patients requiring attention based on risk signals and adherence.</CardDescription>
               </CardHeader>
               <CardContent>
                 <Table>
@@ -106,13 +105,9 @@ export default function Home() {
                   </TableHeader>
                   <TableBody>
                     {patients.map((patient) => (
-                      <TableRow
-                        key={patient.id}
-                        className="cursor-pointer hover:bg-muted/50 transition-colors"
-                        onClick={() => router.push(`/patients/${patient.id}`)}
-                      >
+                      <TableRow key={patient.id}>
                         <TableCell className="font-medium">{patient.name}</TableCell>
-                        <TableCell>{patient.conditions.join(", ")}</TableCell>
+                        <TableCell>{patient.condition}</TableCell>
                         <TableCell>
                           <div className="flex items-center gap-2">
                             <span className="text-sm">{patient.adherence}%</span>
@@ -120,57 +115,31 @@ export default function Home() {
                           </div>
                         </TableCell>
                         <TableCell>
-                          {patient.recentCheckIns[0]?.symptoms.length > 0 ? (
+                          {patient.latestSymptom !== "None" ? (
                             <span className="flex items-center gap-1 text-sm text-destructive font-medium">
                               <AlertTriangle className="h-3 w-3" />
-                              {patient.recentCheckIns[0].symptoms[0]}
+                              {patient.latestSymptom}
                             </span>
                           ) : (
                             <span className="text-sm text-muted-foreground">Normal</span>
                           )}
                         </TableCell>
                         <TableCell>
-                          <Badge
-                            variant={
-                              patient.risk === "High"
-                                ? "destructive"
-                                : patient.risk === "Moderate"
-                                ? "secondary"
-                                : "outline"
-                            }
-                          >
+                          <Badge variant={patient.risk === "Critical" ? "destructive" : patient.risk === "Medium" ? "secondary" : "outline"}>
                             {patient.risk}
                           </Badge>
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end gap-2">
-                            <Button
-                              size="icon"
-                              variant="outline"
-                              title="View Patient"
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                router.push(`/patients/${patient.id}`)
-                              }}
-                            >
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              size="icon"
-                              variant="outline"
-                              title="Call Patient"
-                              onClick={(e) => e.stopPropagation()}
-                            >
+                            <Button size="icon" variant="outline" title="Call Patient">
                               <Phone className="h-4 w-4" />
                             </Button>
-                            <Button
-                              size="icon"
-                              variant="outline"
-                              title="Adjust Medication"
-                              onClick={(e) => e.stopPropagation()}
-                            >
+                            <Button size="icon" variant="outline" title="Adjust Medication">
                               <Pill className="h-4 w-4" />
                             </Button>
+                            <Link href={`/patients/${patient.id}`} className={buttonVariants({ size: "icon", variant: "ghost" })} title="View Patient Details">
+                              <Eye className="h-4 w-4" />
+                            </Link>
                           </div>
                         </TableCell>
                       </TableRow>
@@ -189,12 +158,12 @@ export default function Home() {
               <CardContent>
                 <div className="space-y-4">
                   {[
-                    { title: "Missed Medication", desc: "Riya K. missed morning dose (3rd day)", time: "10m ago", urgent: true },
-                    { title: "Check-in Complete", desc: "Arjun M. reported fatigue", time: "2h ago", urgent: true },
+                    { title: "Missed Medication", desc: "Ramesh K. missed morning dose (3rd day)", time: "10m ago", urgent: true },
+                    { title: "Check-in Complete", desc: "Arjun M. reported dizziness", time: "2h ago", urgent: true },
                     { title: "Medication Taken", desc: "Sunita P. logged morning meds", time: "3h ago", urgent: false },
                     { title: "Check-in Complete", desc: "Priya S. feeling normal", time: "5h ago", urgent: false },
                   ].map((item, i) => (
-                    <div key={i} className="flex gap-3 border-l-2 pl-4 pb-4 border-muted -ml-px">
+                    <div key={i} className="flex gap-3 border-l-2 pl-4 pb-4 border-muted cursor-pointer hover:bg-muted/50 transition-colors -ml-px">
                       <div className="mt-1 flex">
                         {item.urgent ? (
                           <div className="-ml-[21px] mr-3 rounded-full bg-destructive p-1 ring-4 ring-background">
@@ -217,7 +186,6 @@ export default function Home() {
               </CardContent>
             </Card>
           </div>
-
         </div>
       </main>
     </div>
