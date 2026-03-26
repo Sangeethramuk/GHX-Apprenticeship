@@ -24,11 +24,34 @@ import { Separator } from "@/components/ui/separator"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Spinner } from "@/components/ui/spinner"
 
-// Extend window type for SpeechRecognition
+// Speech Recognition types
+interface SpeechRecognitionEvent extends Event {
+  resultIndex: number
+  results: SpeechRecognitionResultList
+}
+
+interface SpeechRecognitionErrorEvent extends Event {
+  error: string
+  message: string
+}
+
+interface SpeechRecognition extends EventTarget {
+  continuous: boolean
+  interimResults: boolean
+  lang: string
+  start(): void
+  stop(): void
+  abort(): void
+  onresult: ((event: SpeechRecognitionEvent) => void) | null
+  onerror: ((event: SpeechRecognitionErrorEvent) => void) | null
+  onend: (() => void) | null
+  onstart: (() => void) | null
+}
+
 declare global {
   interface Window {
-    SpeechRecognition: typeof SpeechRecognition
-    webkitSpeechRecognition: typeof SpeechRecognition
+    SpeechRecognition: new () => SpeechRecognition
+    webkitSpeechRecognition: new () => SpeechRecognition
   }
 }
 
@@ -485,7 +508,7 @@ export function ConsultationClient({ patient }: Props) {
                     {phase === "idle" && !transcript && (
                       <div className="flex h-full flex-col items-center justify-center gap-2 text-center text-muted-foreground">
                         <Mic className="h-8 w-8 opacity-30" />
-                        <p className="text-sm">Click "Start Consultation" to begin recording</p>
+                        <p className="text-sm">Click &quot;Start Consultation&quot; to begin recording</p>
                         <p className="text-xs opacity-70">Requires Chrome or Edge with microphone access</p>
                       </div>
                     )}
