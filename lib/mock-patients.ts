@@ -1,5 +1,24 @@
 export type VitalReading = { date: string; value: number }
 
+// Patient type for AI components
+export interface Patient {
+  id: number
+  name: string
+  age: number
+  gender: "M" | "F"
+  bloodType: string
+  phone: string
+  conditions: string[]
+  risk: "High" | "Moderate" | "Low"
+  adherence: number
+  adherenceWeek: (0 | 1)[]
+  lastCheckin: string
+  allergies: string[]
+  medications: { name: string; dose: string; frequency: string; adherenceRate: number; lastTaken: string; refillDue: string }[]
+  vitalsHistory: { date: string; systolic?: number; diastolic?: number; glucose?: number; heartRate?: number; weight?: number }[]
+  recentCheckIns: { date: string; symptoms: string[]; note: string; moodScore: number }[]
+}
+
 export type PatientDetail = {
   id: number
   name: string
@@ -376,3 +395,48 @@ export const MOCK_PATIENTS: PatientDetail[] = [
     ],
   },
 ]
+
+// Helper function to get patient by ID
+export function getPatientById(id: number): PatientDetail | undefined {
+  return MOCK_PATIENTS.find((p) => p.id === id)
+}
+
+// Convert PatientDetail to Patient type for AI components
+export function toPatient(detail: PatientDetail): Patient {
+  return {
+    id: detail.id,
+    name: detail.name,
+    age: detail.age,
+    gender: detail.gender === "Male" ? "M" : "F",
+    bloodType: detail.bloodType,
+    phone: detail.phone,
+    conditions: [detail.condition],
+    risk: detail.risk === "Critical" ? "High" : detail.risk === "Medium" ? "Moderate" : "Low",
+    adherence: detail.adherence,
+    adherenceWeek: detail.dailyProgress.slice(-7).map((d) => (d.adherence >= 80 ? 1 : 0) as 0 | 1),
+    lastCheckin: detail.lastCheckin,
+    allergies: detail.allergies,
+    medications: detail.medications.map((m) => ({
+      name: m.name,
+      dose: m.dose,
+      frequency: m.frequency,
+      adherenceRate: m.adherencePercent,
+      lastTaken: "Recently",
+      refillDue: "Check pharmacy",
+    })),
+    vitalsHistory: detail.vitals.bloodPressureSystolic.map((s, i) => ({
+      date: s.date,
+      systolic: s.value,
+      diastolic: detail.vitals.bloodPressureDiastolic[i]?.value,
+      heartRate: detail.vitals.heartRate[i]?.value,
+      glucose: detail.vitals.glucose[i]?.value,
+      weight: detail.vitals.weight[i]?.value,
+    })),
+    recentCheckIns: detail.checkIns.map((ci) => ({
+      date: ci.date,
+      symptoms: ci.reportedSymptoms,
+      note: ci.notes,
+      moodScore: ci.mood === "Good" ? 4 : ci.mood === "Fair" ? 3 : 2,
+    })),
+  }
+}

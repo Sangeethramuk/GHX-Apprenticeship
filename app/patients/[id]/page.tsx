@@ -32,10 +32,12 @@ import { Separator } from "@/components/ui/separator"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
-import { MOCK_PATIENTS } from "@/lib/mock-patients"
+import { MOCK_PATIENTS, toPatient } from "@/lib/mock-patients"
 import { BackButton } from "./_components/BackButton"
 import DailyProgressChart from "./_components/DailyProgressChart"
 import VitalsCharts from "./_components/VitalsCharts"
+import { AISummaryCard } from "./AISummaryCard"
+import { ChatWindow } from "./ChatWindow"
 
 export default async function PatientPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -143,7 +145,10 @@ export default async function PatientPage({ params }: { params: Promise<{ id: st
 
       {/* MAIN CONTENT */}
       <main className="flex-1 overflow-auto p-6">
-        <div className="mx-auto max-w-7xl space-y-6">
+        <div className="mx-auto max-w-7xl grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+          {/* LEFT COLUMN - Patient Data */}
+          <div className="lg:col-span-8 space-y-6">
 
           {/* ACTIVE ALERTS BANNER */}
           {activeAlerts.length > 0 && (
@@ -586,6 +591,13 @@ export default async function PatientPage({ params }: { params: Promise<{ id: st
               </Tabs>
             </CardContent>
           </Card>
+          </div>
+
+          {/* RIGHT COLUMN - AI Panel */}
+          <div className="lg:col-span-4 space-y-4">
+            <AISummaryCard patientId={patient.id} />
+            <ChatWindow patient={toPatient(patient)} />
+          </div>
 
         </div>
       </main>
