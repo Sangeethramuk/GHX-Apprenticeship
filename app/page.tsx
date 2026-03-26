@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button, buttonVariants } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { ModeToggle } from "@/components/mode-toggle"
 
 const patients = [
   { id: 1, name: "Arjun Mehta", condition: "Hypertension", adherence: 65, latestSymptom: "Dizziness", risk: "Medium", lastCheckin: "2 hours ago" },
@@ -26,6 +27,7 @@ export default function Home() {
           <h1 className="text-xl font-bold tracking-tight">Wellytics Continuous Care</h1>
         </div>
         <div className="ml-auto flex items-center gap-4">
+          <ModeToggle />
           <Button variant="outline" size="sm">
             <Clock className="mr-2 h-4 w-4" />
             Shift active
